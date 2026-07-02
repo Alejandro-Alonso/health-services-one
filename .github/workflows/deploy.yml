@@ -3,6 +3,7 @@ name: Deploy to Hostinger
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
@@ -22,6 +23,13 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Network diagnostic
+        run: |
+          for p in 21 22 65002 990; do
+            timeout 5 bash -c "echo > /dev/tcp/${{ secrets.FTP_SERVER }}/$p" 2>/dev/null \
+              && echo "port $p: OPEN" || echo "port $p: BLOCKED/TIMEOUT"
+          done
 
       - name: Deploy over FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
